@@ -55,7 +55,7 @@ const getBoardData = () => {
     return {
         title: boardWrite.title,
         content: boardWrite.content,
-        attachFileUrl:
+        postImageUrl:
             localStorage.getItem('postFileUrl') === null
                 ? undefined
                 : localStorage.getItem('postFileUrl'),
@@ -78,7 +78,7 @@ const addBoard = async () => {
 
         if (status === HTTP_CREATED) {
             localStorage.removeItem('postFileUrl');
-            window.location.href = `/html/board.html?id=${data.insertId}`;
+            window.location.href = `/html/board.html?id=${data.postId}`;
         } else {
             const helperElement = contentHelpElement;
             helperElement.textContent = '제목, 내용을 모두 작성해주세요.';
@@ -144,7 +144,7 @@ const changeEventHandler = async (event, uid) => {
         try {
             const { ok, data } = await fileUpload(formData);
             if (!ok) throw new Error('서버 응답 오류');
-            localStorage.setItem('postFileUrl', data.fileUrl);
+            localStorage.setItem('postFileUrl', data.jpgPath);
         } catch (error) {
             console.error('업로드 중 오류 발생:', error);
         }

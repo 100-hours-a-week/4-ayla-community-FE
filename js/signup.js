@@ -258,7 +258,11 @@ const uploadProfileImage = () => {
 };
 
 const init = async () => {
-    await authCheckReverse();
+    try {
+        await authCheckReverse();
+    } catch {
+        // 백엔드 미응답 시에도 페이지 초기화 진행
+    }
     prependChild(document.body, Header('커뮤니티', 1));
     observeSignupData();
     addEventForInputElements();

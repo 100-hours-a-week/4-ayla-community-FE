@@ -22,16 +22,21 @@ const loginClick = async () => {
     const { id: email, password } = loginData;
     const helperTextElement = document.querySelector('.helperText');
 
-    const { ok, status, code } = await userLogin(email, password);
-    if (!ok) {
-        updateHelperText(
-            helperTextElement,
-            code === 'INVALID_INPUT'
-                ? '*입력값을 확인해주세요.'
-                : '*입력하신 계정 정보가 정확하지 않았습니다.',
-        );
-        return;
-    }
+    // const { ok, status, code } = await userLogin(email, password);
+    const { ok, status, code, data } = await userLogin(email, password);
+    // if (!ok) {
+    //     updateHelperText(
+    //         helperTextElement,
+    //         code === 'INVALID_INPUT'
+    //             ? '*입력값을 확인해주세요.'
+    //             : '*입력하신 계정 정보가 정확하지 않았습니다.',
+    //     );
+    //     return;
+    // }
+    if (ok && status === HTTP_OK) {
+      localStorage.setItem('accessToken', data.accessToken);  // 저장
+      location.href = '/html/index.html';
+  }
 
     if (status !== HTTP_OK) {
         updateHelperText(
@@ -123,7 +128,11 @@ const lottieAnimation = type => {
 };
 
 const init = async () => {
-    await authCheckReverse();
+    try {
+        await authCheckReverse();
+    } catch {
+        // 백엔드 미응답 시에도 페이지 초기화 진행
+    }
     observeSignupData();
     prependChild(document.body, Header('커뮤니티', 0));
     eventSet();

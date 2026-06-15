@@ -13,7 +13,7 @@ export const getServerUrl = () => {
     const host = window.location.hostname;
     return host.includes('localhost')
         ? 'http://localhost:3000'
-        : `http://${host}:3000`;
+        : `https://${host}`;
 };
 
 export const resolveImageUrl = (url, fallback = null) => {
@@ -23,9 +23,11 @@ export const resolveImageUrl = (url, fallback = null) => {
 };
 
 export const serverSessionCheck = async () => {
-    const res = await fetch(`${getServerUrl()}/v1/auth/check`, {
+    const token = localStorage.getItem('accessToken');
+    const res = await fetch(`${getServerUrl()}/users/me`, {
         method: 'GET',
         credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return res;
 };
@@ -47,7 +49,7 @@ export const authCheckReverse = async () => {
 // 이메일 유효성 검사
 export const validEmail = email => {
     const REGEX =
-        /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/i;
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return REGEX.test(email);
 };
 
