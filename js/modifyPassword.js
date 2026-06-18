@@ -12,7 +12,6 @@ import {
 const button = document.querySelector('#signupBtn');
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
-const HTTP_CREATED = 201;
 
 const dataResponse = await authCheck();
 const data = await dataResponse.json();
@@ -22,15 +21,15 @@ const profileImage = resolveImageUrl(
 );
 
 const modifyData = {
+    currentPassword: '',
     password: '',
     passwordCheck: '',
 };
 
 const observeData = () => {
-    const { password, passwordCheck } = modifyData;
+    const { currentPassword, password, passwordCheck } = modifyData;
 
-    // id, pw, pwck, nickname, profile 값이 모두 존재하는지 확인
-    if (!password || !passwordCheck || password !== passwordCheck) {
+    if (!currentPassword || !password || !passwordCheck || password !== passwordCheck) {
         button.disabled = true;
         button.style.backgroundColor = '#ACA0EB';
     } else {
@@ -40,7 +39,19 @@ const observeData = () => {
 };
 
 const blurEventHandler = async (event, uid) => {
-    if (uid == 'pw') {
+    if (uid == 'current-pw') {
+        const value = event.target.value;
+        const helperElement = document.querySelector(`.inputBox p[name="${uid}"]`);
+
+        if (!helperElement) return;
+
+        if (value == '' || value == null) {
+            helperElement.textContent = '*현재 비밀번호를 입력해주세요.';
+        } else {
+            helperElement.textContent = '';
+            modifyData.currentPassword = value;
+        }
+    } else if (uid == 'pw') {
         const value = event.target.value;
         const isValidPassword = validPassword(value);
         const helperElement = document.querySelector(
@@ -94,11 +105,11 @@ const addEventForInputElements = () => {
 };
 
 const modifyPassword = async () => {
-    const { password } = modifyData;
+    const { currentPassword, password, passwordCheck } = modifyData;
 
-    const { status } = await changePassword(password);
+    const { status } = await changePassword(data.data.id, currentPassword, password, passwordCheck);
 
-    if (status == HTTP_CREATED) {
+    if (status == 200) {
         try {
             await fetch(`${getServerUrl()}/auth/logout`, {
                 method: 'POST',

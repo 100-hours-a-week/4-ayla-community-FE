@@ -5,14 +5,12 @@ import { authCheck, getServerUrl, prependChild, resolveImageUrl } from '../utils
 import { getPosts, searchPosts } from '../api/indexRequest.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
-const HTTP_NOT_AUTHORIZED = 401;
 const SCROLL_THRESHOLD = 0.9;
-const INITIAL_OFFSET = 5;
-const ITEMS_PER_LOAD = 5;
-const DEFAULT_SORT = 'recent';
+const ITEMS_PER_LOAD = 10;
+const DEFAULT_SORT = 'latest';
 let currentKeyword = '';
 let currentSort = DEFAULT_SORT;
-let offset = 0;
+let cursor = null;
 let isEnd = false;
 let isProcessing = false;
 
@@ -25,13 +23,13 @@ const updateSortVisibility = () => {
 };
 
 // getBoardItem 함수
-const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
+const getBoardItem = async (cursorValue = null, limitValue = 10) => {
     const result =
         currentKeyword.trim() === ''
-            ? await getPosts(offsetValue, limitValue)
+            ? await getPosts(cursorValue, limitValue, currentSort)
             : await searchPosts(
                   currentKeyword,
-                  offsetValue,
+                  cursorValue,
                   limitValue,
                   currentSort,
               );
@@ -75,17 +73,18 @@ const loadBoardItems = async ({ reset = false } = {}) => {
 
     try {
         if (reset) {
-            offset = 0;
+            cursor = null;
             isEnd = false;
             resetBoardList();
         }
-        const items = await getBoardItem(offset, ITEMS_PER_LOAD);
-        if (!items || items.length === 0) {
+        const pageData = await getBoardItem(cursor, ITEMS_PER_LOAD);
+        if (!pageData || pageData.posts.length === 0) {
             isEnd = true;
             return;
         }
-        setBoardItem(items);
-        offset += ITEMS_PER_LOAD;
+        setBoardItem(pageData.posts);
+        cursor = pageData.nextCursor;
+        isEnd = !pageData.hasNext;
     } catch (error) {
         console.error('Error fetching items:', error);
         isEnd = true;
@@ -133,7 +132,6 @@ const addSortEvent = () => {
 
 // 스크롤 이벤트 추가
 const addInfinityScrollEvent = () => {
-    offset = INITIAL_OFFSET;
     isEnd = false;
     isProcessing = false;
 
@@ -150,12 +148,9 @@ const addInfinityScrollEvent = () => {
 const init = async () => {
     try {
         const response = await authCheck();
-        const data = await response.json();
-        if (response.status === HTTP_NOT_AUTHORIZED) {
-            window.location.href = '/html/login.html';
-            return;
-        }
+        if (!response.ok) return;
 
+        const data = await response.json();
         const profileImageUrl = resolveImageUrl(
             data.data.profileImageUrl,
             DEFAULT_PROFILE_IMAGE,
@@ -174,6 +169,7 @@ const init = async () => {
         addInfinityScrollEvent();
     } catch (error) {
         console.error('Initialization failed:', error);
+        window.location.href = '/html/login.html';
     }
 };
 

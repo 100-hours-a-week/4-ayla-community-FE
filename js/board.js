@@ -68,7 +68,7 @@ const setBoardDetail = data => {
 
     // 바디 정보
     const contentImgElement = document.querySelector('.contentImg');
-    const fileUrl = data.fileUrl || resolveImageUrl(data.filePath);
+    const fileUrl = resolveImageUrl(data.fileUrl) || resolveImageUrl(data.filePath);
     if (fileUrl) {
         console.log(fileUrl);
         const img = document.createElement('img');
@@ -145,7 +145,7 @@ const setBoardDetail = data => {
 };
 
 const setBoardModify = async (data, myInfo) => {
-    if (myInfo.idx === data.writerId) {
+    if (myInfo.userId === data.userId) {
         const modifyElement = document.querySelector('.hidden');
         modifyElement.classList.remove('hidden');
 

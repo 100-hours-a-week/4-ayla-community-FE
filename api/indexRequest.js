@@ -1,9 +1,11 @@
 import { getServerUrl } from '../utils/function.js';
 import { requestJson } from '../utils/request.js';
 
-export const getPosts = (offset, limit) => {
+export const getPosts = (cursor = null, limit = 10, sort = 'latest') => {
+    const params = new URLSearchParams({ sort, limit });
+    if (cursor) params.set('cursor', cursor);
     const result = requestJson(
-        `${getServerUrl()}/posts?offset=${offset}&limit=${limit}`,
+        `${getServerUrl()}/posts?${params.toString()}`,
         {
             credentials: 'include',
         },

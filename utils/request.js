@@ -14,7 +14,11 @@ export const parseJsonSafe = async response => {
 // fetch 공통 요청 함수 - { ok, status, code, data, body } 형태로 반환
 export const requestJson = async (url, options = {}) => {
     const accessToken = localStorage.getItem('accessToken');
-    const response = await fetch(url, options);
+    const headers = {
+        ...(options.headers || {}),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    };
+    const response = await fetch(url, { ...options, headers });
     const body = await parseJsonSafe(response);
     return {
         response,

@@ -163,7 +163,7 @@ const sendModifyData = async () => {
         if (changeData.nickname === '') {
             Dialog('필수 정보 누락', '닉네임을 입력해주세요.');
         } else {
-            const { status } = await userModify(changeData);
+            const { status } = await userModify(changeData, authData.data.id);
 
             if (status === HTTP_OK) {
                 localStorage.removeItem('profileImageUrl');
@@ -181,7 +181,7 @@ const sendModifyData = async () => {
 // 회원 탈퇴
 const deleteAccount = async () => {
     const callback = async () => {
-        const { status } = await userDelete();
+        const { status } = await userDelete(authData.data.id);
 
         if (status === HTTP_OK) {
             try {
