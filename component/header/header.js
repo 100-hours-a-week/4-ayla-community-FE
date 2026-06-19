@@ -15,11 +15,14 @@ const headerDropdownMenu = () => {
     modifyPasswordLink.href = '/html/modifyPassword.html';
     logoutLink.addEventListener('click', async () => {
         try {
-            await fetch(`${getServerUrl()}/v1/auth/logout`, {
-                method: 'POST',
+            const token = localStorage.getItem('accessToken');
+            await fetch(`${getServerUrl()}/auth`, {
+                method: 'DELETE',
                 credentials: 'include',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
             });
         } finally {
+            localStorage.removeItem('accessToken');
             location.href = '/html/login.html';
         }
     });

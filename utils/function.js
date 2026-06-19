@@ -1,3 +1,5 @@
+import { tryRefreshToken } from './request.js';
+
 export const getServerUrl = () => {
     const configUrl =
         typeof window !== 'undefined' &&
@@ -23,12 +25,25 @@ export const resolveImageUrl = (url, fallback = null) => {
 };
 
 export const serverSessionCheck = async () => {
-    const token = localStorage.getItem('accessToken');
-    const res = await fetch(`${getServerUrl()}/users/me`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const doFetch = () => {
+        const token = localStorage.getItem('accessToken');
+        return fetch(`${getServerUrl()}/users/me`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+    };
+
+    const res = await doFetch();
+
+    if (res.status === 401) {
+        const refreshed = await tryRefreshToken();
+        if (refreshed) {
+            return doFetch();
+        }
+        localStorage.removeItem('accessToken');
+    }
+
     return res;
 };
 
